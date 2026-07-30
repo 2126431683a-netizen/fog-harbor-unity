@@ -55,7 +55,7 @@ public class LampFX : MonoBehaviour
         fx.cone = Mk(root, "cone", "FX/cone", 12, Vector3.one);
         fx.cone.transform.localPosition = new Vector3(0, -1.04f, 0);
         fx.glow = Mk(root, "glow", "FX/glow", 12, Vector3.one * 0.24f);
-        fx.head = U.RectProp(root, "head", px, 129, 8, 3, new Color(0.94f, 0.86f, 0.63f), 12).GetComponent<SpriteRenderer>();
+        fx.head = U.RectProp(root.transform, "head", px, 129, 8, 3, new Color(0.94f, 0.86f, 0.63f), 12).GetComponent<SpriteRenderer>();
     }
     static SpriteRenderer Mk(GameObject parent, string name, string spr, int order, Vector3 scale)
     {
