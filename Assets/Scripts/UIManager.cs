@@ -44,6 +44,8 @@ public class UIManager : MonoBehaviour
 
     static Font LoadFont()
     {
+        var cjk = Resources.Load<Font>("Fonts/cjk");
+        if (cjk) return cjk;
         try { var f = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); if (f) return f; } catch { }
         try { return Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch { return null; }
     }
@@ -62,6 +64,11 @@ public class UIManager : MonoBehaviour
         scaler.matchWidthOrHeight = 0.5f;
         cgo.AddComponent<GraphicRaycaster>();
         BuildHUD(); BuildDialog(); BuildLetter(); BuildIntro(); BuildEnding(); BuildFade();
+        // 点击推进：剧情 / 对话 / 信纸 / 幕尾
+        AddPanelClick(introPanel, () => AdvanceIntro());
+        AddPanelClick(dlgPanel, () => { if (choices == null) AdvanceDialog(); });
+        AddPanelClick(letterPanel, () => { if (Time.time - letterAt > 0.3f) CloseLetter(); });
+        AddPanelClick(endPanel, () => { if (endSpace != null) endSpace(); else endR?.Invoke(); });
     }
 
     /* ---------- 基础构件 ---------- */
@@ -100,11 +107,21 @@ public class UIManager : MonoBehaviour
         var rt = go.AddComponent<RectTransform>();
         var img = go.AddComponent<Image>(); img.color = bg;
         var btn = go.AddComponent<Button>();
-        btn.onClick.AddListener(() => onClick());
+        btn.onClick.AddListener(() => { suppressPanelClick = true; onClick(); });
         var t = MkText(go.transform, "Label", size, new Color(0.78f, 0.82f, 0.86f), TextAnchor.MiddleCenter);
         t.text = label;
         At(t, 0, 0, 1, 1, 0, 0);
         return btn;
+    }
+
+    // 面板点击推进（按钮点击优先，通过 suppressPanelClick 抑制穿透）
+    static bool suppressPanelClick;
+    void AddPanelClick(RectTransform panel, Action act)
+    {
+        var tg = panel.gameObject.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+        var e = new UnityEngine.EventSystems.EventTrigger.Entry { eventID = UnityEngine.EventSystems.EventTriggerType.PointerDown };
+        e.callback.AddListener(_ => { if (!suppressPanelClick) act(); });
+        tg.triggers.Add(e);
     }
 
     /* ---------- HUD ---------- */
@@ -450,6 +467,7 @@ public class UIManager : MonoBehaviour
                 if (advance) endSpace?.Invoke();
                 break;
         }
+        suppressPanelClick = false;
     }
     public void OnEscape()
     {
