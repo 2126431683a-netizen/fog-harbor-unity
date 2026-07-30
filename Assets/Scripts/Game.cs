@@ -370,6 +370,11 @@ public partial class Game : MonoBehaviour
 
         if (room != null)
         {
+            // 16:9 信箱适配，避免超宽/竖屏穿帮
+            float aspect = (float)Screen.width / Mathf.Max(1, Screen.height);
+            const float target = 16f / 9f;
+            if (aspect > target) { float w = target / aspect; cam.rect = new Rect((1 - w) / 2, 0, w, 1); }
+            else { float h = aspect / target; cam.rect = new Rect(0, (1 - h) / 2, 1, h); }
             CamX = camPx / 100f;
             cam.transform.position = new Vector3(CamX + 2.4f, 1.35f, -10);
             var r = rts[room.id];
